@@ -71,6 +71,8 @@ dist: clean
 
 bump:
 	$(VENV)/bin/bumpversion $(BUMPTYPE)
+	git push origin
+	git push --tags
 
 run:
 	$(VENV)/bin/honcho start -f Procfile.dev
