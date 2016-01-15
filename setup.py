@@ -17,7 +17,7 @@ requirements = [
 
 setup(
     name='nobeldb',
-    version='0.1.0',
+    version='0.2.0',
     description='Nobel Prize Winner DB Shenanigans',
     long_description=readme,
     author='Eric Larson',
