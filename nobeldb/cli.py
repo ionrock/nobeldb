@@ -1,26 +1,42 @@
 # -*- coding: utf-8 -*-
 
 import csv
-import argparse
+import pkg_resources
+import textwrap
 
-def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('needle')
-    parser.add_argument('data', nargs='?', default='nobel.csv')
-    return parser.parse_args()
+import click
+from tabulate import tabulate
 
 
-def main():
-    args = get_args()
-    with open(args.data) as fh:
-        winners = csv.DictReader(fh)
-        for winner in winners:
-            name = winner['Name']
-            if name.lower().startswith(args.needle.lower()):
-                print('%s | %s - %s' % (
-                    winner['Year'], winner['Name'],
-                    winner['Category']
-                ))
-                # print(winner['Motivation'])
+default_data = pkg_resources.resource_filename('nobeldb', 'data/nobel.csv')
+
+def reader(fh):
+    rows = csv.DictReader(fh)
+    for row in rows:
+        yield {k: v.decode('latin-1') for k, v in row.iteritems()}
+
+
+@click.command()
+@click.argument('needle')
+@click.option('--db', '-d', default=default_data, type=click.File('rb'))
+def main(needle, db):
+    rows = []
+    cols = ['Year', 'Name', 'Category', 'Motivation']
+
+    for winner in reader(db):
+        if winner['Name'].lower().startswith(needle.lower()):
+            row = [winner['Year'], winner['Name'], winner['Category']]
+            motivation = textwrap.wrap(winner['Motivation'], 30)
+            row.append(motivation[0])
+            rows.append(row)
+
+            for chunk in motivation[1:]:
+                rows.append(['', '', '', chunk])
+
+            rows.append(['', '', '', ''])
+
+    click.echo(tabulate(rows))
+
+
 if __name__ == '__main__':
     main()
